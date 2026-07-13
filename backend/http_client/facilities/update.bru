@@ -1,0 +1,21 @@
+meta {
+  name: update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{Authentication-Base}}/facilities/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AccessToken}}
+}
+
+body:json {
+  {
+    "description": "Expanded primary health center with maternal care services."
+  }
+}

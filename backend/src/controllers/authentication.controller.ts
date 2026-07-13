@@ -1,0 +1,390 @@
+import { Request, Response, NextFunction } from "express";
+import JsonWebToken from "jsonwebtoken";
+import UserService from "@/services/users.service";
+import TokensService from "@/services/tokens.service";
+import { User, ResponseWithMetadata } from "@/types/index";
+import { AuthenticatedRequest } from "@/middlewares/authenticate";
+import { Logger } from "winston";
+import createError from "http-errors";
+import HashingService from "@/services/hashing.service";
+import { getRandomValues } from "node:crypto";
+import { MESSAGE_BROKER_TOPIC_EVENTS } from "@/lib/constants";
+
+class AutenticationController {
+  constructor(
+    private readonly userService: UserService,
+    private readonly hashingService: HashingService,
+    private readonly accessTokensService: TokensService,
+    private readonly refreshTokensService: TokensService,
+    private readonly forgotTokensService: TokensService,
+    private readonly logger: Logger,
+  ) {}
+
+  async register(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, password, ...rest } = req.body as User;
+      this.logger.debug(`initiate registering user ${email}`);
+      const userExists = await this.userService.findOne({ where: { email } });
+      if (userExists) {
+        this.logger.debug(`user already exists with ${email} email`);
+        throw createError(400, "user already exists");
+      }
+
+      this.logger.debug("creating hash of the password");
+      const passwordHash = await this.hashingService.hash(password);
+
+      this.logger.debug("registering user");
+      const user = await this.userService.create({
+        email,
+        password: passwordHash,
+        ...rest,
+      });
+      this.logger.debug("user registered successfully");
+      user.password = undefined;
+      const response: ResponseWithMetadata<typeof user> = {
+        data: user,
+        success: true,
+      };
+      res.json(response);
+      return;
+    } catch (error) {
+      next(error);
+      return;
+    }
+  }
+
+  async login(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, password } = req.body as Pick<User, "email" | "password">;
+      this.logger.debug(`Attempting login for user with email: ${email}`);
+      const user = await this.userService.findOne({
+        where: { email },
+      });
+      if (!user) {
+        this.logger.debug(`User not found for email: ${email}`);
+        throw createError(404, "user not found");
+      }
+      this.logger.debug(`Matching password for email: ${email}`);
+      const isPasswordCorrect = await this.hashingService.compare(
+        password,
+        user.password,
+      );
+      if (!isPasswordCorrect) {
+        this.logger.debug(`Wrong credentials for email: ${email}`);
+        throw createError(400, "wrong credentials");
+      }
+      this.logger.debug(`User with email: ${email} logged in successfully`);
+
+      const payload: JsonWebToken.JwtPayload = {
+        sub: String(user.id),
+        role: user.role,
+      };
+
+      const signOptions: JsonWebToken.SignOptions = {
+        algorithm: "RS256",
+        expiresIn: "1h",
+        issuer: "food_authentication",
+      };
+
+      this.logger.debug("persist refresh token");
+      const saveRefreshToken = await this.refreshTokensService.create({ user });
+
+      if (!saveRefreshToken) {
+        throw createError(500, "refresh token not persist");
+      }
+
+      this.logger.debug("generating access token");
+      const accessToken = this.accessTokensService.sign(payload, signOptions);
+
+      const refreshToken = this.refreshTokensService.sign(
+        { ...payload, jti: String(saveRefreshToken.id) },
+        {
+          expiresIn: "1y",
+          issuer: "food_authentication",
+        },
+      );
+
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60,
+        secure: false,
+      });
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+        secure: false,
+      });
+
+      const response: ResponseWithMetadata<{ id: number }> = {
+        data: { id: user.id },
+        success: true,
+      };
+      res.json(response);
+      return;
+    } catch (error) {
+      this.logger.error(`Error during login: ${(error as Error).message}`);
+      next(error);
+      return;
+    }
+  }
+
+  async profile(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = (req as AuthenticatedRequest).auth.sub;
+      this.logger.debug(`Fetching profile for user id: ${id}`);
+      const user = await this.userService.findOne({
+        where: { id: Number(id) },
+      });
+      if (!user) {
+        this.logger.debug(`User not found for id: ${id}`);
+        throw createError(404, "user not found");
+      }
+      user.password = undefined;
+      const response: ResponseWithMetadata<typeof user> = {
+        data: user,
+        success: true,
+      };
+      return res.json(response);
+    } catch (error) {
+      this.logger.error(`Error fetching profile: ${(error as Error).message}`);
+      next(error);
+    }
+  }
+
+  async forgot(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body as { email: string };
+
+      if (!email) {
+        throw createError(400, "email is required");
+      }
+
+      this.logger.debug(`Initiating forgot password for email: ${email}`);
+      const user = await this.userService.findOne({ where: { email } });
+      if (!user) {
+        this.logger.debug(`User not found for email: ${email}`);
+        throw createError(404, "user not found");
+      }
+      const payload: JsonWebToken.JwtPayload = {
+        sub: String(user.id),
+        role: user.role,
+        email: user.email,
+      };
+      this.logger.debug(`Forgot password token generated for email: ${email}`);
+      const token = this.forgotTokensService.sign(payload);
+
+      const response: ResponseWithMetadata<{ token: string }> = {
+        data: { token },
+        success: true,
+      };
+      return res.json(response);
+    } catch (error) {
+      this.logger.error(
+        `Error during forgot password: ${(error as Error).message}`,
+      );
+      next(error);
+    }
+  }
+
+  async reset(req: Request, res: Response, next: NextFunction) {
+    try {
+      this.logger.debug(`Attempting password reset with token`);
+      const { token } = req.params;
+      if (!token) {
+        throw createError(400, "token is required");
+      }
+      const match = this.forgotTokensService.verify(token as string);
+      if (!match) {
+        this.logger.debug(`Invalid token for password reset`);
+        throw createError(500, "internal server error");
+      }
+      const { email } = match as JsonWebToken.JwtPayload;
+      this.logger.debug(`Verifying user existence for email: ${email}`);
+
+      const userExists = await this.userService.findOne({
+        where: { email: email as string },
+      });
+
+      if (!userExists) {
+        this.logger.debug(`User not found for email: ${email}`);
+        throw createError(404, "user not found");
+      }
+
+      const { password } = req.body as { password: string };
+
+      if (!password) {
+        throw createError(400, "password is required");
+      }
+
+      const user = await this.userService.update(
+        { email: email as string },
+        {
+          password,
+        },
+      );
+      if (!user) {
+        this.logger.debug(`Failed to update password for email: ${email}`);
+        throw createError(500, "internal server error");
+      }
+      this.logger.debug(`Password reset successful for email: ${email}`);
+
+      const updatedUser = await this.userService.findOne({
+        where: { email: email as string },
+      });
+
+      if (!updatedUser) {
+        throw createError(500, "internal server error");
+      }
+
+      updatedUser.password = undefined;
+
+      const response: ResponseWithMetadata<typeof updatedUser> = {
+        data: updatedUser,
+        success: true,
+      };
+      return res.json(response);
+    } catch (error) {
+      this.logger.error(
+        `Error during password reset: ${(error as Error).message}`,
+      );
+      next(error);
+    }
+  }
+
+  async refresh(req: Request, res: Response, next: NextFunction) {
+    const { refreshToken } = req.cookies;
+    this.logger.debug(`initiate refresh token process`);
+
+    try {
+      const match = this.refreshTokensService.verify(refreshToken as string);
+      if (!match) {
+        this.logger.debug("invalid token");
+        return next(createError.Unauthorized());
+      }
+      const { sub: userId, jti } = match as JsonWebToken.JwtPayload;
+      const user = await this.userService.findOne({
+        where: { id: Number(userId) },
+      });
+      if (!user) {
+        this.logger.debug("user not found");
+        return next(createError.NotFound("user not found"));
+      }
+
+      const refreshTokenExists = await this.refreshTokensService.findOne({
+        where: { id: Number(jti) },
+      });
+
+      if (!refreshTokenExists) {
+        this.logger.debug("refresh token not found");
+        return next(createError.NotFound("refresh token not found"));
+      }
+
+      const payload: JsonWebToken.JwtPayload = {
+        sub: String(user.id),
+        role: user.role,
+      };
+
+      const signOptions: JsonWebToken.SignOptions = {
+        algorithm: "RS256",
+        expiresIn: "1h",
+        issuer: "food_authentication",
+      };
+
+      this.logger.debug("generating access token");
+      const accessToken = this.accessTokensService.sign(payload, signOptions);
+
+      const deleteUserRefreshToken = await this.refreshTokensService.delete({
+        id: Number(jti),
+      });
+
+      if (!deleteUserRefreshToken) {
+        this.logger.debug("delete user refresh token failed");
+        return next(createError.InternalServerError());
+      }
+
+      this.logger.debug("persist refresh token");
+      const savedRefreshToken = await this.refreshTokensService.create({
+        user,
+      });
+
+      if (!savedRefreshToken) {
+        this.logger.debug("persist refresh token failed");
+        return next(
+          createError.InternalServerError("refresh token not persist"),
+        );
+      }
+
+      this.logger.debug("generating refresh token");
+      const refreshTokenNew = this.refreshTokensService.sign(
+        { ...payload, jti: String(savedRefreshToken.id) },
+        {
+          expiresIn: "1y",
+          issuer: "food_authentication",
+        },
+      );
+
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60,
+        secure: false,
+      });
+
+      res.cookie("refreshToken", refreshTokenNew, {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+        secure: false,
+      });
+
+      this.logger.debug("token refreshed successfully");
+      const response: ResponseWithMetadata<{ status: string }> = {
+        data: { status: "success" },
+        success: true,
+      };
+      return res.json(response);
+    } catch (error) {
+      this.logger.debug(error);
+      return next(error);
+    }
+  }
+
+  async logout(req: Request, res: Response, next: NextFunction) {
+    const id = (req as AuthenticatedRequest).auth.sub;
+    try {
+      const user = await this.userService.findOne({
+        where: { id: Number(id) },
+      });
+      if (!user) {
+        this.logger.debug("user not found");
+        return next(createError.NotFound("user not found"));
+      }
+
+      const deleteUserRefreshTokens = await this.refreshTokensService.delete({
+        user: { id: user.id },
+      });
+
+      if (!deleteUserRefreshTokens) {
+        this.logger.debug("delete user refresh tokens failed");
+        return next(createError.InternalServerError());
+      }
+
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+
+      const response: ResponseWithMetadata<{ id: number }> = {
+        data: { id: user.id },
+        success: true,
+      };
+      return res.json(response);
+    } catch (error) {
+      this.logger.error("logout user failed", error);
+      next(createError.InternalServerError());
+    }
+  }
+}
+
+export default AutenticationController;

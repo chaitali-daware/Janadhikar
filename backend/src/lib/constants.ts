@@ -1,0 +1,83 @@
+export const enum ROLES {
+  ADMIN = "admin",
+  MANAGER = "manager",
+  USER = "user",
+}
+
+export const enum MESSAGE_BROKER_TOPIC_EVENTS {
+  USER_CREATED = "user.created",
+  USER_UPDATED = "user.updated",
+  USER_DELETED = "user.deleted",
+}
+
+export const enum FACILITY_TYPES {
+  SCHOOL = "school",
+  HOSPITAL = "hospital",
+  PRIMARY_HEALTH_CENTRE = "primary_health_centre",
+  PARK = "park",
+  LIBRARY = "library",
+  WATER_TANK = "water_tank",
+  POLICE_STATION = "police_station",
+  BUS_STOP = "bus_stop",
+  BANK = "bank",
+  PANCHAYAT_OFFICE = "panchayat_office",
+  OTHER = "other",
+}
+
+export const FACILITY_TYPE_VALUES = [
+  FACILITY_TYPES.SCHOOL,
+  FACILITY_TYPES.HOSPITAL,
+  FACILITY_TYPES.PRIMARY_HEALTH_CENTRE,
+  FACILITY_TYPES.PARK,
+  FACILITY_TYPES.LIBRARY,
+  FACILITY_TYPES.WATER_TANK,
+  FACILITY_TYPES.POLICE_STATION,
+  FACILITY_TYPES.BUS_STOP,
+  FACILITY_TYPES.BANK,
+  FACILITY_TYPES.PANCHAYAT_OFFICE,
+  FACILITY_TYPES.OTHER,
+] as const;
+
+export const enum PROJECT_CATEGORIES {
+  ROAD = "road",
+  BRIDGE = "bridge",
+  HOSPITAL = "hospital",
+  SCHOOL = "school",
+  DRAINAGE = "drainage",
+  WATER_SUPPLY = "water_supply",
+  ELECTRICITY = "electricity",
+  SMART_VILLAGE = "smart_village",
+  SOLAR = "solar",
+  COMMUNITY_HALL = "community_hall",
+  OTHER = "other",
+}
+
+export const PROJECT_CATEGORY_VALUES = [
+  PROJECT_CATEGORIES.ROAD,
+  PROJECT_CATEGORIES.BRIDGE,
+  PROJECT_CATEGORIES.HOSPITAL,
+  PROJECT_CATEGORIES.SCHOOL,
+  PROJECT_CATEGORIES.DRAINAGE,
+  PROJECT_CATEGORIES.WATER_SUPPLY,
+  PROJECT_CATEGORIES.ELECTRICITY,
+  PROJECT_CATEGORIES.SMART_VILLAGE,
+  PROJECT_CATEGORIES.SOLAR,
+  PROJECT_CATEGORIES.COMMUNITY_HALL,
+  PROJECT_CATEGORIES.OTHER,
+] as const;
+
+export const enum PROJECT_STATUSES {
+  PLANNED = "planned",
+  IN_PROGRESS = "in_progress",
+  ON_HOLD = "on_hold",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
+}
+
+export const PROJECT_STATUS_VALUES = [
+  PROJECT_STATUSES.PLANNED,
+  PROJECT_STATUSES.IN_PROGRESS,
+  PROJECT_STATUSES.ON_HOLD,
+  PROJECT_STATUSES.COMPLETED,
+  PROJECT_STATUSES.CANCELLED,
+] as const;

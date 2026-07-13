@@ -1,0 +1,21 @@
+meta {
+  name: update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{Authentication-Base}}/departments/{{DepartmentId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AccessToken}}
+}
+
+body:json {
+  {
+    "description": "Coordinates rural infrastructure and sanitation projects."
+  }
+}

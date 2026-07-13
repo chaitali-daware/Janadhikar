@@ -1,0 +1,22 @@
+meta {
+  name: update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{Authentication-Base}}/projects/{{ProjectId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AccessToken}}
+}
+
+body:json {
+  {
+    "progress_percentage": 35,
+    "status": "ongoing"
+  }
+}

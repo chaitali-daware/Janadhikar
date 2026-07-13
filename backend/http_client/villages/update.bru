@@ -1,0 +1,22 @@
+meta {
+  name: update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{Authentication-Base}}/villages/{{VillageId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AccessToken}}
+}
+
+body:json {
+  {
+    "population": 4500,
+    "area_sq_km": 13.2
+  }
+}

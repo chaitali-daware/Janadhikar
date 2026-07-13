@@ -1,0 +1,15 @@
+meta {
+  name: delete
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{Authentication-Base}}/departments/{{DepartmentId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AccessToken}}
+}

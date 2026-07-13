@@ -1,0 +1,30 @@
+meta {
+  name: create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{Authentication-Base}}/villages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AccessToken}}
+}
+
+body:json {
+  {
+    "name": "Wadgaon Khurd",
+    "district": "Pune",
+    "taluka": "Haveli",
+    "state": "Maharashtra",
+    "pincode": "411014",
+    "latitude": 18.52,
+    "longitude": 73.85,
+    "population": 4200,
+    "area_sq_km": 12.5,
+    "created_by_user_id": 1
+  }
+}
