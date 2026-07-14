@@ -14,7 +14,7 @@ export const Icons = {
   x: X,
   logo: ({ ...props }: LucideProps) => (
     <svg
-      fill="#db0a0a"
+      fill="currentColor"
       height="100px"
       width="100px"
       id="Layer_1"

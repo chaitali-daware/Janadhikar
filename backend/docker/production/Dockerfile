@@ -20,7 +20,7 @@ RUN npm run build
 FROM node:25-alpine AS runner
 
 # Set environment variable to production
-ENV NODE_ENV=test
+ENV NODE_ENV=production
 
 # Set the working directory inside the container
 WORKDIR /home/node/app
@@ -38,10 +38,11 @@ RUN npm uninstall better-sqlite3 \
 
 # Copy the built application from the builder stage
 COPY --chown=node:node --from=builder /build/dist/ .
-COPY --chown=node:node --from=builder /build/janadhikar.db .
+COPY --chown=node:node --from=builder /build/ .
 
-RUN mkdir -p /home/node/app/logs \
-  && chown -R node:node /home/node/app/logs
+RUN mkdir -p /home/node/app/logs /home/node/app/janadhikar.db \
+  && chown -R node:node /home/node/app/logs /home/node/app/janadhikar.db \
+  && chmod -R 755 /home/node/app/logs /home/node/app/janadhikar.db
 
 # Change the owner of the working directory to the node user
 USER node
