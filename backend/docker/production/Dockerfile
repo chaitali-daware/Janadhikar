@@ -40,6 +40,9 @@ RUN npm uninstall better-sqlite3 \
 COPY --chown=node:node --from=builder /build/dist/ .
 COPY --chown=node:node --from=builder /build/janadhikar.db .
 
+RUN mkdir -p /home/node/app/logs \
+  && chown -R node:node /home/node/app/logs
+
 # Change the owner of the working directory to the node user
 USER node
 
