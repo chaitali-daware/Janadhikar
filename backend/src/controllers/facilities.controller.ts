@@ -4,28 +4,47 @@ import { Logger } from "winston";
 import z from "zod";
 import FacilitiesService from "@/services/facilities.service";
 import { ResponseWithMetadata } from "@/types/index";
-import { Facility } from "@/entities/facility";
+import { Facility } from "@/types";
 import { facilityQueryValidationSchema } from "@/validators/facilities.validator";
+import { FACILITY_TYPES } from "@/lib/constants";
+import VillagesService from "@/services/villages.service";
 
 class FacilitiesController {
   constructor(
     private readonly facilitiesService: FacilitiesService,
+    private readonly villagesService: VillagesService,
     private readonly logger: Logger,
   ) {}
 
   async create(req: Request, res: Response, next: NextFunction) {
-    const facilityData = req.body as Facility;
+    const { villageId, ...rest } = req.body as Facility;
     try {
+      if (!villageId) {
+        throw createHttpError(400, "villageId is required");
+      }
+      const village = await this.villagesService.findOne({
+        where: { id: villageId },
+      });
+
+      if (!village) {
+        throw createHttpError(404, "Village not found");
+      }
       this.logger.info("Creating facility");
-      const facility = await this.facilitiesService.create(facilityData);
+      const facility = await this.facilitiesService.create({
+        name: rest.name,
+        description: rest.description,
+        type: rest.type as FACILITY_TYPES,
+        is_active: rest.is_active,
+        village: { id: villageId },
+      });
       this.logger.info(`Facility created with id: ${facility.id}`);
       const response: ResponseWithMetadata<Facility> = {
-        data: facility,
+        data: facility as unknown as Facility,
         success: true,
       };
       res.json(response);
     } catch (_error: unknown) {
-      this.logger.error("Error creating facility");
+      this.logger.error("Error creating facility", _error);
       next(createHttpError(500, "Error creating facility"));
     }
   }
@@ -50,7 +69,7 @@ class FacilitiesController {
         .getManyAndCount();
       const response: ResponseWithMetadata<Facility[]> = {
         meta: { page, per_page, total },
-        data: facilities,
+        data: facilities as unknown as Facility[],
         success: true,
       };
       return res.json(response);
@@ -69,7 +88,7 @@ class FacilitiesController {
         throw createHttpError(404, "Facility not found");
       }
       const response: ResponseWithMetadata<Facility> = {
-        data: facility,
+        data: facility as unknown as Facility,
         success: true,
       };
       res.json(response);
@@ -83,7 +102,12 @@ class FacilitiesController {
     try {
       await this.facilitiesService.update(
         { id: Number(req.params.id) },
-        facilityData,
+        {
+          name: facilityData.name,
+          description: facilityData.description,
+          type: facilityData.type as FACILITY_TYPES,
+          is_active: facilityData.is_active,
+        },
       );
       const updatedFacility = await this.facilitiesService.findOne({
         where: { id: Number(req.params.id) },

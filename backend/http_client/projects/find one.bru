@@ -5,11 +5,9 @@ meta {
 }
 
 get {
-  url: {{Authentication-Base}}/projects/{{ProjectId}}
+  url: http://localhost:5000/projects/{{ProjectId}}
   body: none
   auth: bearer
 }
 
-auth:bearer {
-  token: {{AccessToken}}
-}
+

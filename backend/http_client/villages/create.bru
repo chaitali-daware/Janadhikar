@@ -5,14 +5,12 @@ meta {
 }
 
 post {
-  url: {{Authentication-Base}}/villages
+  url: http://localhost:5000/villages
   body: json
   auth: bearer
 }
 
-auth:bearer {
-  token: {{AccessToken}}
-}
+
 
 body:json {
   {

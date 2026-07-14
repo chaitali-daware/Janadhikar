@@ -5,11 +5,9 @@ meta {
 }
 
 get {
-  url: {{Authentication-Base}}/departments/{{DepartmentId}}
+  url: http://localhost:5000/departments/{{DepartmentId}}
   body: none
   auth: bearer
 }
 
-auth:bearer {
-  token: {{AccessToken}}
-}
+

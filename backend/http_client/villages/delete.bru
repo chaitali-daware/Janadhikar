@@ -5,11 +5,9 @@ meta {
 }
 
 delete {
-  url: {{Authentication-Base}}/villages/{{VillageId}}
+  url: http://localhost:5000/villages/{{VillageId}}
   body: none
   auth: bearer
 }
 
-auth:bearer {
-  token: {{AccessToken}}
-}
+

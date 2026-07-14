@@ -5,14 +5,12 @@ meta {
 }
 
 post {
-  url: {{Authentication-Base}}/departments
+  url: http://localhost:5000/departments
   body: json
   auth: bearer
 }
 
-auth:bearer {
-  token: {{AccessToken}}
-}
+
 
 body:json {
   {
