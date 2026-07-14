@@ -92,7 +92,7 @@ const LoginPage = () => {
                   className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
                 /> */}
                 <div className="flex items-center justify-center h-full w-full">
-                  <Icons.logo className="size-96 -mr-20" />
+                  <Icons.logo className="size-56" />
                 </div>
               </div>
               <form
