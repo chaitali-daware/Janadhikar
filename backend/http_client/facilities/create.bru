@@ -10,15 +10,11 @@ post {
   auth: bearer
 }
 
-auth:bearer {
-  token: {{AccessToken}}
-}
-
 body:json {
   {
     "name": "Primary Health Center",
     "description": "Community health center serving the village residents.",
-    "type": "health",
+    "type": "primary_health_centre",
     "is_active": true,
     "villageId": 1
   }
