@@ -118,8 +118,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Icons.logo className="size-full" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="truncate font-medium">Aurigene</span>
-            <span className="truncate text-xs">Pharmaceutical Services</span>
+            <span className="truncate font-medium">Janadhikar</span>
+            <span className="truncate text-xs">Your Personal Application</span>
           </div>
         </div>
       </SidebarHeader>
