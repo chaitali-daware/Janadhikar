@@ -6,14 +6,11 @@ const DashboardLayout = React.lazy(() => import("@/layouts/dashboard-layout"));
 
 const SignInPage = React.lazy(() => import("@/pages/auth/sign-in"));
 const DashboardPage = React.lazy(() => import("@/pages/dashboard/dashboard"));
-const SequenceInputPage = React.lazy(
-  () => import("@/pages/dashboard/sequence-input"),
-);
+
+
 const SettingsPage = React.lazy(() => import("@/pages/dashboard/settings"));
 const AgentsPage = React.lazy(() => import("@/pages/dashboard/agents"));
-const StructureViewerPage = React.lazy(
-  () => import("@/pages/dashboard/structure-viewer"),
-);
+
 
 function App() {
   return (
@@ -52,26 +49,10 @@ function App() {
           }
         />
         <Route
-          path="/dashboard/projects/:projectId/predict/new"
-          element={
-            <React.Suspense fallback={<Loading />}>
-              <SequenceInputPage />
-            </React.Suspense>
-          }
-        />
-        <Route
           path="/dashboard/projects/:projectId/predict/:predictionId"
           element={
             <React.Suspense fallback={<Loading />}>
               <DashboardPage />
-            </React.Suspense>
-          }
-        />
-        <Route
-          path="/dashboard/structure-viewer/:pdbFileName"
-          element={
-            <React.Suspense fallback={<Loading />}>
-              <StructureViewerPage />
             </React.Suspense>
           }
         />
