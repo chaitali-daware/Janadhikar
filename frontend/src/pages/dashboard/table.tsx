@@ -1,6 +1,5 @@
 import React from "react";
 import { ExternalLink, Info } from "lucide-react";
-import { StructureViewer } from "@/components/structure-viewer";
 import {
   Card,
   CardAction,
@@ -25,7 +24,6 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
-import { modelsInformationMock } from "@/data";
 
 export function MetricSection({
   title,
@@ -76,15 +74,12 @@ export function MetricCard({ name, value }: { name: string; value: number }) {
         </CardTitle>
         <CardAction>
           <Popover>
-            <PopoverTrigger asChild>
+            <PopoverTrigger>
               <Button size="icon-sm" variant="ghost">
                 <Info className="size-4 text-blue-900" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80">
-              {modelsInformationMock[
-                name.toLowerCase() as keyof typeof modelsInformationMock
-              ] || "No information available for this model."}
             </PopoverContent>
           </Popover>
         </CardAction>
@@ -114,10 +109,10 @@ export default function PremiumTable() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
           <Card className="col-span-1 h-full flex flex-col gap-4 p-2 box-border">
             <div className="h-2/3 aspect-square relative">
-              <StructureViewer
+              {/* <StructureViewer
                 className="h-full w-fullrounded-2xl bg-muted/30 border border-border/50 flex items-center justify-center"
                 pdbFilePath="http://localhost:8000/uploads/b2fabde7-9da5-415d-8316-e3ffe2a0b69b.pdb"
-              />
+              /> */}
               <Sheet>
                 <SheetTrigger>
                   <ExternalLink className="absolute top-2 right-2 size-5" />
@@ -131,10 +126,10 @@ export default function PremiumTable() {
                   </SheetHeader>
                   <div className="h-full p-2 flex">
                     <div className="h-full w-2/3">
-                      <StructureViewer
+                      {/* <StructureViewer
                         className="h-full w-full rounded-2xl bg-muted/30 flex items-center justify-center"
                         pdbFilePath="http://localhost:8000/uploads/b2fabde7-9da5-415d-8316-e3ffe2a0b69b.pdb"
-                      />
+                      /> */}
                     </div>
                     <div className="h-full flex-1"></div>
                   </div>
