@@ -135,7 +135,7 @@ export default function ProjectsPage() {
         description="Manage and view all your active projects and deployments."
       >
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
+          <DialogTrigger>
             <Button size="lg">
               <PlusCircle className="size-4" /> Create Project
             </Button>

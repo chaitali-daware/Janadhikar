@@ -129,7 +129,7 @@ export default function ProjectSwitcher({
       onOpenChange={setShowProjectTeamDialog}
     >
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+        <PopoverTrigger >
           <Button
             variant="outline"
             role="combobox"
@@ -193,7 +193,7 @@ export default function ProjectSwitcher({
             <CommandSeparator />
             <CommandList>
               <CommandGroup>
-                <DialogTrigger asChild>
+                <DialogTrigger >
                   <CommandItem
                     onSelect={() => {
                       setOpen(false);

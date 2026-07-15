@@ -1,4 +1,4 @@
-import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { Bar, BarChart, XAxis, YAxis} from "recharts";
 
 import {
   Card,

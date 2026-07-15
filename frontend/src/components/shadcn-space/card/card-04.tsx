@@ -23,7 +23,7 @@ function AnimatedCounter({
   isInView?: boolean;
 }) {
   const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) =>
+  const rounded = useTransform(count, (latest : any) =>
     Math.round(latest).toLocaleString(),
   );
 

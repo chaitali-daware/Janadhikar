@@ -106,16 +106,16 @@ class AutenticationController {
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "none",
+        secure: true,
         maxAge: 1000 * 60 * 60,
-        secure: false,
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "none",
+        secure: true,
         maxAge: 1000 * 60 * 60 * 24 * 365,
-        secure: false,
       });
 
       const response: ResponseWithMetadata<{ id: number }> = {
@@ -329,16 +329,16 @@ class AutenticationController {
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "none",
+        secure: true,
         maxAge: 1000 * 60 * 60,
-        secure: false,
       });
 
       res.cookie("refreshToken", refreshTokenNew, {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "none",
+        secure: true,
         maxAge: 1000 * 60 * 60 * 24 * 365,
-        secure: false,
       });
 
       this.logger.debug("token refreshed successfully");

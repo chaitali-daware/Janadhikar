@@ -1,4 +1,4 @@
-import { Icon } from "@iconify/react";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -34,15 +34,6 @@ const StatisticsCard = ({ categories }: StatisticsCardProps) => {
                             : "border-destructive/20",
                         )}
                       >
-                        <Icon
-                          icon={item.cardIcon}
-                          className={cn(
-                            "size-4",
-                            Number(item.score) > 50
-                              ? "text-green-500"
-                              : "text-red-500",
-                          )}
-                        />
                       </div>
                     </div>
                     <div className="flex flex-col gap-1">
